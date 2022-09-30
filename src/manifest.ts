@@ -3,7 +3,10 @@ import { ManifestType } from "@src/manifest-type";
 
 const manifest: ManifestType = {
   manifest_version: 3,
-  name: packageJson.name,
+  name: packageJson.name
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" "),
   version: packageJson.version,
   description: packageJson.description,
   options_page: "src/pages/options/index.html",
