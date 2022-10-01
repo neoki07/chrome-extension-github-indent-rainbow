@@ -56,10 +56,21 @@ const onUpdate = async () => {
           firstLexeme.splitText(firstNotIndentCharIndex);
         }
 
-        firstLexeme.textContent = firstLexeme.textContent.replace(
-          /[\x20\t]/g,
-          "_"
-        );
+        let indentIndex = 0;
+        let currentIndent = firstLexeme;
+        while (currentIndent.textContent.length >= indentSize) {
+          const nextIndent = currentIndent.splitText(indentSize);
+          const coloredIndent = document.createElement("span");
+          coloredIndent.innerText = currentIndent.textContent;
+
+          const indentColor = colors[indentIndex % colors.length];
+          coloredIndent.style.background = indentColor;
+          coloredIndent.style.boxShadow = `0 -3px 0 0px ${indentColor}, 0 3px 0 0px ${indentColor}`;
+          currentIndent.replaceWith(coloredIndent);
+
+          indentIndex++;
+          currentIndent = nextIndent;
+        }
       }
     });
   }
