@@ -56,20 +56,29 @@ const onUpdate = async () => {
           firstLexeme.splitText(firstNotIndentCharIndex);
         }
 
-        let indentIndex = 0;
         let currentIndent = firstLexeme;
-        while (currentIndent.textContent.length >= indentSize) {
-          const nextIndent = currentIndent.splitText(indentSize);
+
+        if (currentIndent.textContent.length % indentSize === 0) {
+          let indentIndex = 0;
+          while (currentIndent.textContent.length >= indentSize) {
+            const nextIndent = currentIndent.splitText(indentSize);
+            const coloredIndent = document.createElement("span");
+            coloredIndent.innerText = currentIndent.textContent;
+
+            const indentColor = colors[indentIndex % colors.length];
+            coloredIndent.style.background = indentColor;
+            coloredIndent.style.boxShadow = `0 -3px 0 0px ${indentColor}, 0 3px 0 0px ${indentColor}`;
+            currentIndent.replaceWith(coloredIndent);
+
+            indentIndex++;
+            currentIndent = nextIndent;
+          }
+        } else {
           const coloredIndent = document.createElement("span");
           coloredIndent.innerText = currentIndent.textContent;
-
-          const indentColor = colors[indentIndex % colors.length];
-          coloredIndent.style.background = indentColor;
-          coloredIndent.style.boxShadow = `0 -3px 0 0px ${indentColor}, 0 3px 0 0px ${indentColor}`;
+          coloredIndent.style.background = errorColor;
+          coloredIndent.style.boxShadow = `0 -3px 0 0px ${errorColor}, 0 3px 0 0px ${errorColor}`;
           currentIndent.replaceWith(coloredIndent);
-
-          indentIndex++;
-          currentIndent = nextIndent;
         }
       }
     });
