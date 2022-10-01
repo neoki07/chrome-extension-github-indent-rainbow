@@ -7,13 +7,32 @@ root.id = "github-indent-rainbow-content-view-root";
 document.body.prepend(root);
 
 const onUpdate = () => {
-  const fileLineContainer = document.getElementsByClassName(
+  const fileLineContainers = document.getElementsByClassName(
     "js-file-line-container"
   );
 
-  root.innerText = fileLineContainer.length
-    ? "This is a source code page (content view)"
-    : "This is NOT a source code page (content view)";
+  if (fileLineContainers.length) {
+    const fileLines =
+      fileLineContainers[0].getElementsByClassName("js-file-line");
+
+    Array.from(fileLines).forEach((fileLine) => {
+      const firstLexeme = fileLine.firstChild;
+
+      if (firstLexeme instanceof Text) {
+        const firstNotIndentCharIndex =
+          firstLexeme.textContent.search(/[^\x20\t]/g);
+
+        if (firstNotIndentCharIndex !== -1) {
+          firstLexeme.splitText(firstNotIndentCharIndex);
+        }
+
+        firstLexeme.textContent = firstLexeme.textContent.replace(
+          /[\x20\t]/g,
+          "_"
+        );
+      }
+    });
+  }
 };
 
 const urlChangeObserver = new MutationObserver(() => {
