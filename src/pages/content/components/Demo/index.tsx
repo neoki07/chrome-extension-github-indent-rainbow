@@ -111,8 +111,7 @@ const onUpdate = async () => {
             const indentColor = colors[indentIndex % colors.length];
             coloredIndent.style.background = indentColor;
             coloredIndent.style.padding = "3px 0 3px 0";
-            coloredIndent.style.borderLeft = "1px solid";
-            coloredIndent.style.borderLeftColor = borderColor;
+            coloredIndent.style.boxShadow = `-1px 0 0 0 ${borderColor}`;
 
             fileLine.appendChild(coloredIndent);
           }
@@ -122,8 +121,7 @@ const onUpdate = async () => {
 
           coloredIndent.style.background = errorColor;
           coloredIndent.style.padding = "3px 0 3px 0";
-          coloredIndent.style.borderLeft = "1px solid";
-          coloredIndent.style.borderLeftColor = borderColor;
+          coloredIndent.style.boxShadow = `-1px 0 0 0 ${borderColor}`;
 
           fileLine.appendChild(coloredIndent);
         }
