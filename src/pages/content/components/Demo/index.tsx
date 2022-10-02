@@ -49,6 +49,8 @@ const onUpdate = async () => {
       if (!(fileLine instanceof HTMLTableCellElement)) return;
       if (fileLine.classList.contains("colored-indent-line")) return;
 
+      const isCommentLine = !!fileLine.getElementsByClassName("pl-c").length;
+
       fileLine.classList.add("colored-indent-line");
       fileLine.style.position = "relative";
 
@@ -60,7 +62,10 @@ const onUpdate = async () => {
       fileLine.appendChild(wrapper);
 
       const firstLexeme = wrapper.firstChild;
-      if (firstLexeme instanceof Text) {
+      if (
+        firstLexeme instanceof Text ||
+        (isCommentLine && firstLexeme instanceof HTMLSpanElement)
+      ) {
         const firstNotIndentCharIndex =
           firstLexeme.textContent.search(/[^\x20\t]/g);
 
