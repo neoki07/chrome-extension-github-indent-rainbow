@@ -46,39 +46,50 @@ const onUpdate = async () => {
       fileLineContainers[0].getElementsByClassName("js-file-line");
 
     Array.from(fileLines).forEach((fileLine) => {
-      const firstLexeme = fileLine.firstChild;
+      if (!(fileLine instanceof HTMLTableCellElement)) return;
+      if (fileLine.classList.contains("colored-indent-line")) return;
 
+      fileLine.classList.add("colored-indent-line");
+      fileLine.style.position = "relative";
+
+      const wrapper = document.createElement("span");
+      wrapper.style.position = "absolute";
+      Array.from(fileLine.childNodes).forEach((element) => {
+        wrapper.appendChild(element);
+      });
+      fileLine.appendChild(wrapper);
+
+      const firstLexeme = wrapper.firstChild;
       if (firstLexeme instanceof Text) {
         const firstNotIndentCharIndex =
           firstLexeme.textContent.search(/[^\x20\t]/g);
 
-        if (firstNotIndentCharIndex !== -1) {
-          firstLexeme.splitText(firstNotIndentCharIndex);
-        }
+        const numIndentChars =
+          firstNotIndentCharIndex !== -1
+            ? firstNotIndentCharIndex
+            : firstLexeme.textContent.length;
 
-        let currentIndent = firstLexeme;
+        if (numIndentChars === 0) return;
 
-        if (currentIndent.textContent.length % indentSize === 0) {
-          let indentIndex = 0;
-          while (currentIndent.textContent.length >= indentSize) {
-            const nextIndent = currentIndent.splitText(indentSize);
+        const indentChar = firstLexeme.textContent[0];
+
+        if (numIndentChars % indentSize === 0) {
+          const numIndents = Math.floor(numIndentChars / indentSize);
+
+          for (let indentIndex = 0; indentIndex < numIndents; indentIndex++) {
             const coloredIndent = document.createElement("span");
-            coloredIndent.innerText = currentIndent.textContent;
-
+            coloredIndent.innerText = indentChar.repeat(indentSize);
             const indentColor = colors[indentIndex % colors.length];
             coloredIndent.style.background = indentColor;
             coloredIndent.style.boxShadow = `0 -3px 0 0px ${indentColor}, 0 3px 0 0px ${indentColor}`;
-            currentIndent.replaceWith(coloredIndent);
-
-            indentIndex++;
-            currentIndent = nextIndent;
+            fileLine.appendChild(coloredIndent);
           }
         } else {
           const coloredIndent = document.createElement("span");
-          coloredIndent.innerText = currentIndent.textContent;
+          coloredIndent.innerText = indentChar.repeat(numIndentChars);
           coloredIndent.style.background = errorColor;
           coloredIndent.style.boxShadow = `0 -3px 0 0px ${errorColor}, 0 3px 0 0px ${errorColor}`;
-          currentIndent.replaceWith(coloredIndent);
+          fileLine.appendChild(coloredIndent);
         }
       }
     });
