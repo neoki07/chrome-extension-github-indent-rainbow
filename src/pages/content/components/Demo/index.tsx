@@ -11,8 +11,8 @@ const colors = [
 ];
 
 const errorColor = "rgba(128,32,32,0.6)";
-
 const tabmixColor = "rgba(128,32,96,0.6)";
+const borderColor = "rgba(255,255,255,0.1)";
 
 const root = document.createElement("div");
 root.id = "github-indent-rainbow-content-view-root";
@@ -107,16 +107,24 @@ const onUpdate = async () => {
           for (let indentIndex = 0; indentIndex < numIndents; indentIndex++) {
             const coloredIndent = document.createElement("span");
             coloredIndent.innerText = " ".repeat(indentSize);
+
             const indentColor = colors[indentIndex % colors.length];
             coloredIndent.style.background = indentColor;
-            coloredIndent.style.boxShadow = `0 -3px 0 0px ${indentColor}, 0 3px 0 0px ${indentColor}`;
+            coloredIndent.style.padding = "3px 0 3px 0";
+            coloredIndent.style.borderLeft = "1px solid";
+            coloredIndent.style.borderLeftColor = borderColor;
+
             fileLine.appendChild(coloredIndent);
           }
         } else {
           const coloredIndent = document.createElement("span");
           coloredIndent.innerText = " ".repeat(numIndentSpaces);
+
           coloredIndent.style.background = errorColor;
-          coloredIndent.style.boxShadow = `0 -3px 0 0px ${errorColor}, 0 3px 0 0px ${errorColor}`;
+          coloredIndent.style.padding = "3px 0 3px 0";
+          coloredIndent.style.borderLeft = "1px solid";
+          coloredIndent.style.borderLeftColor = borderColor;
+
           fileLine.appendChild(coloredIndent);
         }
       }
