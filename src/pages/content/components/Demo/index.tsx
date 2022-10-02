@@ -40,11 +40,15 @@ const onUpdate = async () => {
     const branch = splitUrl[6];
     const path = splitUrl.slice(7).join("/");
     const content = await fetchGithubContent(repo, branch, path);
-    const indentSize = detectIndent(content).amount;
 
     const githubTabSize = Number(
       fileLineContainers[0].getAttribute("data-tab-size")
     );
+
+    const indent = detectIndent(content);
+    const indentType = indent.type;
+    const indentSize =
+      indent.amount * (indentType === "tab" ? githubTabSize : 1);
 
     const fileLines =
       fileLineContainers[0].getElementsByClassName("js-file-line");
