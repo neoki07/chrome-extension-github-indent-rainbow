@@ -42,6 +42,10 @@ const onUpdate = async () => {
     const content = await fetchGithubContent(repo, branch, path);
     const indentSize = detectIndent(content).amount;
 
+    const githubTabSize = Number(
+      fileLineContainers[0].getAttribute("data-tab-size")
+    );
+
     const fileLines =
       fileLineContainers[0].getElementsByClassName("js-file-line");
 
@@ -74,16 +78,31 @@ const onUpdate = async () => {
             ? firstNotIndentCharIndex
             : firstLexeme.textContent.length;
 
-        if (numIndentChars === 0) return;
+        let numIndentSpaces = 0;
+        for (let i = 0; i < numIndentChars; i++) {
+          const indentChar = firstLexeme.textContent.charAt(i);
+          if (indentChar.match(/[\x200]/g)) {
+            numIndentSpaces++;
+          } else if (indentChar.match(/[\t]/g)) {
+            numIndentSpaces += githubTabSize;
+          } else {
+            console.warn("indent character isn't space or tab, skipped");
+          }
+        }
 
-        const indentChar = firstLexeme.textContent[0];
+        if (numIndentSpaces === 0) return;
 
-        if (numIndentChars % indentSize === 0) {
-          const numIndents = Math.floor(numIndentChars / indentSize);
+        if (isCommentLine) {
+          numIndentSpaces =
+            Math.ceil(numIndentSpaces / indentSize) * indentSize;
+        }
+
+        if (numIndentSpaces % indentSize === 0) {
+          const numIndents = Math.floor(numIndentSpaces / indentSize);
 
           for (let indentIndex = 0; indentIndex < numIndents; indentIndex++) {
             const coloredIndent = document.createElement("span");
-            coloredIndent.innerText = indentChar.repeat(indentSize);
+            coloredIndent.innerText = " ".repeat(indentSize);
             const indentColor = colors[indentIndex % colors.length];
             coloredIndent.style.background = indentColor;
             coloredIndent.style.boxShadow = `0 -3px 0 0px ${indentColor}, 0 3px 0 0px ${indentColor}`;
@@ -91,7 +110,7 @@ const onUpdate = async () => {
           }
         } else {
           const coloredIndent = document.createElement("span");
-          coloredIndent.innerText = indentChar.repeat(numIndentChars);
+          coloredIndent.innerText = " ".repeat(numIndentSpaces);
           coloredIndent.style.background = errorColor;
           coloredIndent.style.boxShadow = `0 -3px 0 0px ${errorColor}, 0 3px 0 0px ${errorColor}`;
           fileLine.appendChild(coloredIndent);
