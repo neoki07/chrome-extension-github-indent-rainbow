@@ -57,7 +57,9 @@ const onUpdate = async () => {
       if (!(fileLine instanceof HTMLTableCellElement)) return;
       if (fileLine.classList.contains("colored-indent-line")) return;
 
-      const isCommentLine = !!fileLine.getElementsByClassName("pl-c").length;
+      const isPlCElement = !!fileLine.getElementsByClassName("pl-c").length;
+      const isPlSElement = !!fileLine.getElementsByClassName("pl-s").length;
+      const isCommentLine = isPlCElement || isPlSElement;
 
       fileLine.classList.add("colored-indent-line");
       fileLine.style.position = "relative";
@@ -96,7 +98,7 @@ const onUpdate = async () => {
 
         if (numIndentSpaces === 0) return;
 
-        if (isCommentLine) {
+        if (isPlCElement) {
           numIndentSpaces =
             Math.ceil(numIndentSpaces / indentSize) * indentSize;
         }
