@@ -9,14 +9,9 @@ const manifest: ManifestType = {
     .join(" "),
   version: packageJson.version,
   description: packageJson.description,
-  options_page: "src/pages/options/index.html",
-  background: { service_worker: "src/pages/background/index.js" },
   action: {
     default_popup: "src/pages/popup/index.html",
     default_icon: "icon-34.png",
-  },
-  chrome_url_overrides: {
-    newtab: "src/pages/newtab/index.html",
   },
   icons: {
     "128": "icon-128.png",
@@ -25,10 +20,8 @@ const manifest: ManifestType = {
     {
       matches: ["https://github.com/*"],
       js: ["src/pages/content/index.js"],
-      css: ["assets/css/contentStyle.chunk.css"],
     },
   ],
-  devtools_page: "src/pages/devtools/index.html",
   web_accessible_resources: [
     {
       resources: [
