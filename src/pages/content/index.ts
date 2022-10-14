@@ -11,6 +11,8 @@ const errorColor = "rgba(128,32,32,0.6)";
 const tabmixColor = "rgba(128,32,96,0.6)";
 const borderColor = "rgba(255,255,255,0.1)";
 
+const lineHeight = 20; // TODO: compute from GitHub DOM
+
 const root = document.createElement("div");
 root.id = "github-indent-rainbow-content-view-root";
 document.body.prepend(root);
@@ -21,6 +23,35 @@ const enum CharCode {
    */
   Tab = 9,
   Space = 32,
+}
+
+export class IndentGuideHorizontalLine {
+  constructor(
+    public readonly top: boolean,
+    public readonly endColumn: number
+  ) {}
+}
+
+export class IndentGuide {
+  constructor(
+    public readonly visibleColumn: number | -1,
+    public readonly column: number | -1,
+    public readonly className: string,
+    /**
+     * If set, this indent guide is a horizontal guide (no vertical part).
+     * It starts at visibleColumn and continues until endColumn.
+     */
+    public readonly horizontalLine: IndentGuideHorizontalLine | null,
+    /**
+     * If set (!= -1), only show this guide for wrapped lines that don't contain this model column, but are after it.
+     */
+    public readonly forWrappedLinesAfterColumn: number | -1,
+    public readonly forWrappedLinesBeforeOrAtColumn: number | -1
+  ) {
+    if ((visibleColumn !== -1) === (column !== -1)) {
+      throw new Error();
+    }
+  }
 }
 
 const getLineCount = (lines: string[]): number => {
@@ -160,9 +191,70 @@ const getGuidesByLine = (
   indentSize: number,
   tabSize: number
 ) => {
+  const lineCount = getLineCount(lines);
+
   const indentGuides = getLinesIndentGuides(lines, indentSize, tabSize);
-  console.log("indentGuides:", indentGuides);
-  return indentGuides;
+
+  const result: IndentGuide[][] = [];
+  for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
+    const lineGuides = new Array<IndentGuide>();
+    result.push(lineGuides);
+
+    const indentGuidesInLine = indentGuides ? indentGuides[lineNumber - 1] : [];
+
+    for (let indentLvl = 1; indentLvl <= indentGuidesInLine; indentLvl++) {
+      const indentGuide = (indentLvl - 1) * indentSize + 1;
+      lineGuides.push(
+        new IndentGuide(indentGuide, -1, "core-guide-indent", null, -1, -1)
+      );
+    }
+  }
+
+  return result;
+};
+
+const renderIndentGuides = (
+  lines: string[],
+  indentSize: number,
+  tabSize: number
+): void => {
+  const lineCount = getLineCount(lines);
+
+  const indents = getGuidesByLine(lines, indentSize, tabSize);
+
+  const output: string[] = [];
+  for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
+    const lineIndex = lineNumber - 1;
+    const indent = indents[lineIndex];
+    const result = "";
+    // const leftOffset =
+    //   ctx.visibleRangeForPosition(new Position(lineNumber, 1))?.left ?? 0;
+    for (const guide of indent) {
+      // const left =
+      //   guide.column === -1
+      //     ? leftOffset + (guide.visibleColumn - 1) * this._spaceWidth
+      //     : ctx.visibleRangeForPosition(new Position(lineNumber, guide.column))!
+      //         .left;
+      // if (
+      //   left > scrollWidth ||
+      //   (this._maxIndentLeft > 0 && left > this._maxIndentLeft)
+      // ) {
+      //   break;
+      // }
+      // const className = guide.horizontalLine
+      //   ? guide.horizontalLine.top
+      //     ? "horizontal-top"
+      //     : "horizontal-bottom"
+      //   : "vertical";
+      // const width = guide.horizontalLine
+      //   ? (ctx.visibleRangeForPosition(
+      //       new Position(lineNumber, guide.horizontalLine.endColumn)
+      //     )?.left ?? left + this._spaceWidth) - left
+      //   : this._spaceWidth;
+      // result += `<div class="core-guide ${guide.className} ${className}" style="left:${left}px;height:${lineHeight}px;width:${width}px"></div>`;
+    }
+    output[lineIndex] = result;
+  }
 };
 
 const fetchGithubContent = async (
@@ -199,7 +291,7 @@ const onUpdate = async () => {
     const indentSize =
       indent.amount * (indentType === "tab" ? githubTabSize : 1);
 
-    const guidesByLine = getGuidesByLine(lines, indentSize, githubTabSize);
+    renderIndentGuides(lines, indentSize, githubTabSize);
 
     const fileLines =
       fileLineContainers[0].getElementsByClassName("js-file-line");
