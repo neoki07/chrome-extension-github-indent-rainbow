@@ -77,7 +77,11 @@ const getIndentLevelForWhitespaceLine = (
   }
 };
 
-const getLinesIndentGuides = (lines: string[], indentSize: number) => {
+const getLinesIndentGuides = (
+  lines: string[],
+  indentSize: number,
+  tabSize: number
+) => {
   const lineCount = getLineCount(lines);
 
   const offSide = false;
@@ -97,7 +101,7 @@ const getLinesIndentGuides = (lines: string[], indentSize: number) => {
 
     const resultIndex = lineNumber;
 
-    const currentIndent = computeIndentLevel(line, lineNumber);
+    const currentIndent = computeIndentLevel(line, tabSize);
     if (currentIndent >= 0) {
       // This line has content (besides whitespace)
       // Use the line's indent
@@ -114,7 +118,7 @@ const getLinesIndentGuides = (lines: string[], indentSize: number) => {
 
       // must find previous line with content
       for (let lineIndex = lineNumber - 2; lineIndex >= 0; lineIndex--) {
-        const indent = computeIndentLevel(line, lineIndex);
+        const indent = computeIndentLevel(line, tabSize);
         if (indent >= 0) {
           aboveContentLineIndex = lineIndex;
           aboveContentLineIndent = indent;
@@ -132,7 +136,7 @@ const getLinesIndentGuides = (lines: string[], indentSize: number) => {
 
       // must find next line with content
       for (let lineIndex = lineNumber; lineIndex < lineCount; lineIndex++) {
-        const indent = computeIndentLevel(line, lineIndex);
+        const indent = computeIndentLevel(line, tabSize);
         if (indent >= 0) {
           belowContentLineIndex = lineIndex;
           belowContentLineIndent = indent;
@@ -151,8 +155,14 @@ const getLinesIndentGuides = (lines: string[], indentSize: number) => {
   return result;
 };
 
-const getGuidesByLine = (lines: string[], indentSize: number) => {
-  const indentGuides = getLinesIndentGuides(lines, indentSize);
+const getGuidesByLine = (
+  lines: string[],
+  indentSize: number,
+  tabSize: number
+) => {
+  const indentGuides = getLinesIndentGuides(lines, indentSize, tabSize);
+  console.log("indentGuides:", indentGuides);
+  return indentGuides;
 };
 
 const fetchGithubContent = async (
@@ -178,6 +188,8 @@ const onUpdate = async () => {
     const path = splitUrl.slice(7).join("/");
     const content = await fetchGithubContent(repo, branch, path);
 
+    const lines = content.split(/\r\n|\r|\n/);
+
     const githubTabSize = Number(
       fileLineContainers[0].getAttribute("data-tab-size")
     );
@@ -186,6 +198,8 @@ const onUpdate = async () => {
     const indentType = indent.type;
     const indentSize =
       indent.amount * (indentType === "tab" ? githubTabSize : 1);
+
+    const guidesByLine = getGuidesByLine(lines, indentSize, githubTabSize);
 
     const fileLines =
       fileLineContainers[0].getElementsByClassName("js-file-line");
