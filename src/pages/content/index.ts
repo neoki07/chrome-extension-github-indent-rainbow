@@ -1,20 +1,20 @@
-import detectIndent from "detect-indent";
+import detectIndent from 'detect-indent';
 
 const colors = [
-  "rgba(255,255,64,0.07)",
-  "rgba(127,255,127,0.07)",
-  "rgba(255,127,255,0.07)",
-  "rgba(79,236,236,0.07)",
+  'rgba(255,255,64,0.07)',
+  'rgba(127,255,127,0.07)',
+  'rgba(255,127,255,0.07)',
+  'rgba(79,236,236,0.07)',
 ];
 
-const errorColor = "rgba(128,32,32,0.6)";
-const tabmixColor = "rgba(128,32,96,0.6)";
-const borderColor = "rgba(255,255,255,0.1)";
+const errorColor = 'rgba(128,32,32,0.6)';
+const tabmixColor = 'rgba(128,32,96,0.6)';
+const borderColor = 'rgba(255,255,255,0.1)';
 
 const lineHeight = 20; // TODO: compute from GitHub DOM
 
-const root = document.createElement("div");
-root.id = "github-indent-rainbow-content-view-root";
+const root = document.createElement('div');
+root.id = 'github-indent-rainbow-content-view-root';
 document.body.prepend(root);
 
 const enum CharCode {
@@ -205,7 +205,7 @@ const getGuidesByLine = (
     for (let indentLvl = 1; indentLvl <= indentGuidesInLine; indentLvl++) {
       const indentGuide = (indentLvl - 1) * indentSize + 1;
       lineGuides.push(
-        new IndentGuide(indentGuide, -1, "core-guide-indent", null, -1, -1)
+        new IndentGuide(indentGuide, -1, 'core-guide-indent', null, -1, -1)
       );
     }
   }
@@ -214,11 +214,65 @@ const getGuidesByLine = (
 };
 
 const renderIndentGuides = (
+  fileBlobContainerElement: HTMLElement,
+  fileLineContainerElement: HTMLElement,
   lines: string[],
   indentSize: number,
   tabSize: number
 ): void => {
   const lineCount = getLineCount(lines);
+
+  const lineContentContainerElement = document.createElement('div');
+  lineContentContainerElement.className = 'line-content';
+  lineContentContainerElement.style.position = 'absolute';
+  lineContentContainerElement.appendChild(fileLineContainerElement);
+
+  const viewOverlayContainer = document.createElement('div');
+  viewOverlayContainer.className = 'view-overlays';
+  viewOverlayContainer.style.width = '100%';
+  viewOverlayContainer.style.position = 'absolute';
+
+  for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
+    const lineElement = document.createElement('div');
+    lineElement.style.width = '100%';
+    lineElement.style.height = `${lineHeight}px`;
+    lineElement.style.display = 'flex';
+
+    const lineNumberElement = document.createElement('div');
+    lineNumberElement.style.width = '1%';
+    lineNumberElement.style.minWidth = '50px';
+    lineNumberElement.style.height = '100%';
+
+    const lineCodeElement = document.createElement('div');
+    lineCodeElement.style.display = 'flex';
+    lineCodeElement.style.flex = '1';
+    lineCodeElement.style.paddingLeft = '10px';
+    // lineCodeElement.innerText = `${lineNumber}`;
+
+    for (let indentIndex = 0; indentIndex < 8; indentIndex++) {
+      const coloredIndent = document.createElement('div');
+      coloredIndent.innerText = ' '.repeat(indentSize);
+
+      const indentColor = colors[indentIndex % colors.length];
+      // coloredIndent.style.width = "28px";
+      coloredIndent.style.height = '100%';
+      coloredIndent.style.background = indentColor;
+      coloredIndent.style.padding = '3px 0 3px 0';
+      coloredIndent.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
+
+      lineCodeElement.appendChild(coloredIndent);
+    }
+
+    lineElement.append(lineNumberElement, lineCodeElement);
+    viewOverlayContainer.appendChild(lineElement);
+  }
+
+  fileBlobContainerElement.style.position = 'relative';
+  fileBlobContainerElement.style.height = `${lineCount * lineHeight}px`;
+  fileBlobContainerElement.append(
+    viewOverlayContainer,
+    lineContentContainerElement
+  );
 
   const indents = getGuidesByLine(lines, indentSize, tabSize);
 
@@ -226,7 +280,7 @@ const renderIndentGuides = (
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
     const lineIndex = lineNumber - 1;
     const indent = indents[lineIndex];
-    const result = "";
+    const result = '';
     // const leftOffset =
     //   ctx.visibleRangeForPosition(new Position(lineNumber, 1))?.left ?? 0;
     for (const guide of indent) {
@@ -268,115 +322,145 @@ const fetchGithubContent = async (
 };
 
 const onUpdate = async () => {
-  const fileLineContainers = document.getElementsByClassName(
-    "js-file-line-container"
+  const fileBlobContainerElements = document.getElementsByClassName(
+    'js-blob-code-container'
   );
 
-  if (fileLineContainers.length) {
-    const url = location.href;
-    const splitUrl = url.split("/");
-    const repo = `${splitUrl[3]}/${splitUrl[4]}`;
-    const branch = splitUrl[6];
-    const path = splitUrl.slice(7).join("/");
-    const content = await fetchGithubContent(repo, branch, path);
+  if (!fileBlobContainerElements.length) return;
+  const fileBlobContainerElement = fileBlobContainerElements[0];
+  if (!(fileBlobContainerElement instanceof HTMLElement)) return;
 
-    const lines = content.split(/\r\n|\r|\n/);
+  if (fileBlobContainerElement.classList.contains('rendered-indent-guide'))
+    return;
+  fileBlobContainerElement.classList.add('rendered-indent-guide');
 
-    const githubTabSize = Number(
-      fileLineContainers[0].getAttribute("data-tab-size")
+  const fileLineContainerElements =
+    fileBlobContainerElement.getElementsByClassName('js-file-line-container');
+
+  if (!fileBlobContainerElements.length) {
+    console.error(
+      'Not found HTML element with class name `js-file-line-container`'
     );
-
-    const indent = detectIndent(content);
-    const indentType = indent.type;
-    const indentSize =
-      indent.amount * (indentType === "tab" ? githubTabSize : 1);
-
-    renderIndentGuides(lines, indentSize, githubTabSize);
-
-    const fileLines =
-      fileLineContainers[0].getElementsByClassName("js-file-line");
-
-    Array.from(fileLines).forEach((fileLine) => {
-      if (!(fileLine instanceof HTMLTableCellElement)) return;
-      if (fileLine.classList.contains("colored-indent-line")) return;
-
-      const isPlCElement = !!fileLine.getElementsByClassName("pl-c").length;
-      const isPlSElement = !!fileLine.getElementsByClassName("pl-s").length;
-      const isCommentLine = isPlCElement || isPlSElement;
-
-      fileLine.classList.add("colored-indent-line");
-      fileLine.style.position = "relative";
-
-      const wrapper = document.createElement("span");
-      wrapper.style.position = "absolute";
-      Array.from(fileLine.childNodes).forEach((element) => {
-        wrapper.appendChild(element);
-      });
-      fileLine.appendChild(wrapper);
-
-      const firstLexeme = wrapper.firstChild;
-      if (
-        firstLexeme instanceof Text ||
-        (isCommentLine && firstLexeme instanceof HTMLSpanElement)
-      ) {
-        const firstNotIndentCharIndex =
-          firstLexeme.textContent.search(/[^\x20\t]/g);
-
-        const numIndentChars =
-          firstNotIndentCharIndex !== -1
-            ? firstNotIndentCharIndex
-            : firstLexeme.textContent.length;
-
-        let numIndentSpaces = 0;
-        for (let i = 0; i < numIndentChars; i++) {
-          const indentChar = firstLexeme.textContent.charAt(i);
-          if (indentChar.match(/[\x200]/g)) {
-            numIndentSpaces++;
-          } else if (indentChar.match(/[\t]/g)) {
-            numIndentSpaces += githubTabSize;
-          } else {
-            console.warn("indent character isn't space or tab, skipped");
-          }
-        }
-
-        if (numIndentSpaces === 0) return;
-
-        if (isPlCElement) {
-          numIndentSpaces =
-            Math.ceil(numIndentSpaces / indentSize) * indentSize;
-        }
-
-        if (numIndentSpaces % indentSize === 0) {
-          const numIndents = Math.floor(numIndentSpaces / indentSize);
-
-          for (let indentIndex = 0; indentIndex < numIndents; indentIndex++) {
-            const coloredIndent = document.createElement("span");
-            coloredIndent.innerText = " ".repeat(indentSize);
-
-            const indentColor = colors[indentIndex % colors.length];
-            coloredIndent.style.background = indentColor;
-            coloredIndent.style.padding = "3px 0 3px 0";
-            coloredIndent.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
-
-            fileLine.appendChild(coloredIndent);
-          }
-        } else {
-          const coloredIndent = document.createElement("span");
-          coloredIndent.innerText = " ".repeat(numIndentSpaces);
-
-          coloredIndent.style.background = errorColor;
-          coloredIndent.style.padding = "3px 0 3px 0";
-          coloredIndent.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
-
-          fileLine.appendChild(coloredIndent);
-        }
-      }
-    });
+    return;
   }
+
+  const fileLineContainerElement = fileLineContainerElements[0];
+  if (!(fileLineContainerElement instanceof HTMLElement)) return;
+
+  const url = location.href;
+  const splitUrl = url.split('/');
+  const repo = `${splitUrl[3]}/${splitUrl[4]}`;
+  const branch = splitUrl[6];
+  const path = splitUrl.slice(7).join('/');
+  const content = await fetchGithubContent(repo, branch, path);
+
+  const lines = content.split(/\r\n|\r|\n/);
+
+  const dataTabSizeAttribute =
+    fileLineContainerElement.getAttribute('data-tab-size');
+
+  if (!dataTabSizeAttribute) {
+    console.error('Could not get tab size');
+    return;
+  }
+
+  const tabSize = Number(dataTabSizeAttribute);
+
+  const indent = detectIndent(content);
+  const indentType = indent.type;
+  const indentSize = indent.amount * (indentType === 'tab' ? tabSize : 1);
+
+  renderIndentGuides(
+    fileBlobContainerElement,
+    fileLineContainerElement,
+    lines,
+    indentSize,
+    tabSize
+  );
+
+  // const fileLines =
+  //   fileLineContainers[0].getElementsByClassName("js-file-line");
+
+  // Array.from(fileLines).forEach((fileLine) => {
+  //   if (!(fileLine instanceof HTMLTableCellElement)) return;
+  //   if (fileLine.classList.contains("colored-indent-line")) return;
+
+  //   const isPlCElement = !!fileLine.getElementsByClassName("pl-c").length;
+  //   const isPlSElement = !!fileLine.getElementsByClassName("pl-s").length;
+  //   const isCommentLine = isPlCElement || isPlSElement;
+
+  //   fileLine.classList.add("colored-indent-line");
+  //   fileLine.style.position = "relative";
+
+  //   const wrapper = document.createElement("span");
+  //   wrapper.style.position = "absolute";
+  //   Array.from(fileLine.childNodes).forEach((element) => {
+  //     wrapper.appendChild(element);
+  //   });
+  //   fileLine.appendChild(wrapper);
+
+  //   const firstLexeme = wrapper.firstChild;
+  //   if (
+  //     firstLexeme instanceof Text ||
+  //     (isCommentLine && firstLexeme instanceof HTMLSpanElement)
+  //   ) {
+  //     const firstNotIndentCharIndex =
+  //       firstLexeme.textContent.search(/[^\x20\t]/g);
+
+  //     const numIndentChars =
+  //       firstNotIndentCharIndex !== -1
+  //         ? firstNotIndentCharIndex
+  //         : firstLexeme.textContent.length;
+
+  //     let numIndentSpaces = 0;
+  //     for (let i = 0; i < numIndentChars; i++) {
+  //       const indentChar = firstLexeme.textContent.charAt(i);
+  //       if (indentChar.match(/[\x200]/g)) {
+  //         numIndentSpaces++;
+  //       } else if (indentChar.match(/[\t]/g)) {
+  //         numIndentSpaces += githubTabSize;
+  //       } else {
+  //         console.warn("indent character isn't space or tab, skipped");
+  //       }
+  //     }
+
+  //     if (numIndentSpaces === 0) return;
+
+  //     if (isPlCElement) {
+  //       numIndentSpaces =
+  //         Math.ceil(numIndentSpaces / indentSize) * indentSize;
+  //     }
+
+  //     if (numIndentSpaces % indentSize === 0) {
+  //       const numIndents = Math.floor(numIndentSpaces / indentSize);
+
+  //       for (let indentIndex = 0; indentIndex < numIndents; indentIndex++) {
+  //         const coloredIndent = document.createElement("span");
+  //         coloredIndent.innerText = " ".repeat(indentSize);
+
+  //         const indentColor = colors[indentIndex % colors.length];
+  //         coloredIndent.style.background = indentColor;
+  //         coloredIndent.style.padding = "3px 0 3px 0";
+  //         coloredIndent.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
+
+  //         fileLine.appendChild(coloredIndent);
+  //       }
+  //     } else {
+  //       const coloredIndent = document.createElement("span");
+  //       coloredIndent.innerText = " ".repeat(numIndentSpaces);
+
+  //       coloredIndent.style.background = errorColor;
+  //       coloredIndent.style.padding = "3px 0 3px 0";
+  //       coloredIndent.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
+
+  //       fileLine.appendChild(coloredIndent);
+  //     }
+  //   }
+  // });
 };
 
 const urlChangeObserver = new MutationObserver(() => {
-  console.log("DOM changed!");
+  console.log('DOM changed!');
   urlChangeObserver.disconnect();
   onUpdate();
   urlChangeObserver.observe(document, { childList: true, subtree: true });
