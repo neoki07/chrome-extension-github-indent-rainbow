@@ -11,6 +11,7 @@ const errorColor = 'rgba(128,32,32,0.6)';
 const tabmixColor = 'rgba(128,32,96,0.6)';
 const borderColor = 'rgba(255,255,255,0.1)';
 
+const spaceWidth = 7.25; // TODO: compute from font used
 const lineHeight = 20; // TODO: compute from GitHub DOM
 
 const root = document.createElement('div');
@@ -222,94 +223,64 @@ const renderIndentGuides = (
   tabSize: number
 ): void => {
   const lineCount = getLineCount(lines);
+  const height = lineCount * lineHeight;
 
-  const lineContentContainerElement = document.createElement('div');
-  lineContentContainerElement.className = 'line-content';
-  lineContentContainerElement.style.position = 'absolute';
-  lineContentContainerElement.appendChild(fileLineContainerElement);
+  const linesContentContainerElement = document.createElement('div');
+  linesContentContainerElement.className = 'lines-content';
+  linesContentContainerElement.style.position = 'relative';
+  linesContentContainerElement.style.width = '100%';
+  linesContentContainerElement.style.height = `${height}px`;
+  linesContentContainerElement.style.overflow = 'hidden';
 
-  const viewOverlayContainer = document.createElement('div');
-  viewOverlayContainer.className = 'view-overlays';
-  viewOverlayContainer.style.width = '100%';
-  viewOverlayContainer.style.position = 'absolute';
-
-  for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
-    const lineElement = document.createElement('div');
-    lineElement.style.width = '100%';
-    lineElement.style.height = `${lineHeight}px`;
-    lineElement.style.display = 'flex';
-
-    const lineNumberElement = document.createElement('div');
-    lineNumberElement.style.width = '1%';
-    lineNumberElement.style.minWidth = '50px';
-    lineNumberElement.style.height = '100%';
-
-    const lineCodeElement = document.createElement('div');
-    lineCodeElement.style.display = 'flex';
-    lineCodeElement.style.flex = '1';
-    lineCodeElement.style.paddingLeft = '10px';
-    // lineCodeElement.innerText = `${lineNumber}`;
-
-    for (let indentIndex = 0; indentIndex < 8; indentIndex++) {
-      const coloredIndent = document.createElement('div');
-      coloredIndent.innerText = ' '.repeat(indentSize);
-
-      const indentColor = colors[indentIndex % colors.length];
-      // coloredIndent.style.width = "28px";
-      coloredIndent.style.height = '100%';
-      coloredIndent.style.background = indentColor;
-      coloredIndent.style.padding = '3px 0 3px 0';
-      coloredIndent.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
-
-      lineCodeElement.appendChild(coloredIndent);
-    }
-
-    lineElement.append(lineNumberElement, lineCodeElement);
-    viewOverlayContainer.appendChild(lineElement);
-  }
-
-  fileBlobContainerElement.style.position = 'relative';
-  fileBlobContainerElement.style.height = `${lineCount * lineHeight}px`;
-  fileBlobContainerElement.append(
-    viewOverlayContainer,
-    lineContentContainerElement
-  );
+  const viewOverlayContainerElement = document.createElement('div');
+  viewOverlayContainerElement.className = 'view-overlays';
+  viewOverlayContainerElement.style.position = 'absolute';
+  viewOverlayContainerElement.style.top = '0px';
+  viewOverlayContainerElement.style.width = '5000px';
+  viewOverlayContainerElement.style.height = '0px';
 
   const indents = getGuidesByLine(lines, indentSize, tabSize);
 
-  const output: string[] = [];
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
+    const lineElement = document.createElement('div');
+    lineElement.style.position = 'absolute';
+    lineElement.style.left = '0px';
+    lineElement.style.top = `${lineHeight * (lineNumber - 1)}px`;
+    lineElement.style.width = '100%';
+    lineElement.style.height = `${lineHeight}px`;
+
     const lineIndex = lineNumber - 1;
     const indent = indents[lineIndex];
-    const result = '';
-    // const leftOffset =
-    //   ctx.visibleRangeForPosition(new Position(lineNumber, 1))?.left ?? 0;
+    const leftOffset = 60; // TODO: compute line number content width;
     for (const guide of indent) {
-      // const left =
-      //   guide.column === -1
-      //     ? leftOffset + (guide.visibleColumn - 1) * this._spaceWidth
-      //     : ctx.visibleRangeForPosition(new Position(lineNumber, guide.column))!
-      //         .left;
-      // if (
-      //   left > scrollWidth ||
-      //   (this._maxIndentLeft > 0 && left > this._maxIndentLeft)
-      // ) {
-      //   break;
-      // }
-      // const className = guide.horizontalLine
-      //   ? guide.horizontalLine.top
-      //     ? "horizontal-top"
-      //     : "horizontal-bottom"
-      //   : "vertical";
-      // const width = guide.horizontalLine
-      //   ? (ctx.visibleRangeForPosition(
-      //       new Position(lineNumber, guide.horizontalLine.endColumn)
-      //     )?.left ?? left + this._spaceWidth) - left
-      //   : this._spaceWidth;
-      // result += `<div class="core-guide ${guide.className} ${className}" style="left:${left}px;height:${lineHeight}px;width:${width}px"></div>`;
+      const left = leftOffset + (guide.visibleColumn - 1) * spaceWidth;
+      const className = 'vertical';
+      const width = spaceWidth;
+
+      const coloredIndent = document.createElement('div');
+      coloredIndent.classList.add('core-guide', guide.className, className);
+      coloredIndent.style.position = 'absolute';
+      coloredIndent.style.left = `${left}px`;
+      coloredIndent.style.height = `${lineHeight}px`;
+      coloredIndent.style.width = `${width}px`;
+      coloredIndent.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
+
+      lineElement.appendChild(coloredIndent);
     }
-    output[lineIndex] = result;
+    viewOverlayContainerElement.appendChild(lineElement);
   }
+
+  const viewLinesContainerElement = document.createElement('div');
+  viewLinesContainerElement.className = 'view-lines';
+  viewLinesContainerElement.style.position = 'absolute';
+  viewLinesContainerElement.appendChild(fileLineContainerElement);
+
+  linesContentContainerElement.append(
+    viewOverlayContainerElement,
+    viewLinesContainerElement
+  );
+
+  fileBlobContainerElement.append(linesContentContainerElement);
 };
 
 const fetchGithubContent = async (
