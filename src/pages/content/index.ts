@@ -130,7 +130,7 @@ const getLinesIndentGuides = (
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
     const line = lines[lineNumber - 1];
 
-    const resultIndex = lineNumber;
+    const resultIndex = lineNumber - 1;
 
     const currentIndent = computeIndentLevel(line, tabSize);
     if (currentIndent >= 0) {
@@ -149,7 +149,7 @@ const getLinesIndentGuides = (
 
       // must find previous line with content
       for (let lineIndex = lineNumber - 2; lineIndex >= 0; lineIndex--) {
-        const indent = computeIndentLevel(line, tabSize);
+        const indent = computeIndentLevel(lines[lineIndex], tabSize);
         if (indent >= 0) {
           aboveContentLineIndex = lineIndex;
           aboveContentLineIndent = indent;
@@ -167,7 +167,7 @@ const getLinesIndentGuides = (
 
       // must find next line with content
       for (let lineIndex = lineNumber; lineIndex < lineCount; lineIndex++) {
-        const indent = computeIndentLevel(line, tabSize);
+        const indent = computeIndentLevel(lines[lineIndex], tabSize);
         if (indent >= 0) {
           belowContentLineIndex = lineIndex;
           belowContentLineIndent = indent;
@@ -183,6 +183,7 @@ const getLinesIndentGuides = (
       belowContentLineIndent
     );
   }
+
   return result;
 };
 
