@@ -252,21 +252,41 @@ const renderIndentGuides = (
     const lineIndex = lineNumber - 1;
     const indent = indents[lineIndex];
     const leftOffset = 60; // TODO: compute line number content width;
-    for (const guide of indent) {
+
+    indent.forEach((guide, index) => {
       const left = leftOffset + (guide.visibleColumn - 1) * spaceWidth;
       const className = 'vertical';
       const width = spaceWidth;
 
-      const coloredIndent = document.createElement('div');
-      coloredIndent.classList.add('core-guide', guide.className, className);
-      coloredIndent.style.position = 'absolute';
-      coloredIndent.style.left = `${left}px`;
-      coloredIndent.style.height = `${lineHeight}px`;
-      coloredIndent.style.width = `${width}px`;
-      coloredIndent.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
+      const verticalLineIndentGuideElement = document.createElement('div');
+      verticalLineIndentGuideElement.classList.add(
+        'core-guide',
+        guide.className,
+        className
+      );
+      verticalLineIndentGuideElement.style.position = 'absolute';
+      verticalLineIndentGuideElement.style.left = `${left}px`;
+      verticalLineIndentGuideElement.style.height = `${lineHeight}px`;
+      verticalLineIndentGuideElement.style.width = `${width}px`;
+      verticalLineIndentGuideElement.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
+      lineElement.appendChild(verticalLineIndentGuideElement);
 
-      lineElement.appendChild(coloredIndent);
-    }
+      if (lines[lineIndex].length) {
+        const coloredIndentGuideElement = document.createElement('div');
+        coloredIndentGuideElement.classList.add(
+          'core-guide',
+          guide.className,
+          'colored'
+        );
+        coloredIndentGuideElement.style.position = 'absolute';
+        coloredIndentGuideElement.style.left = `${left}px`;
+        coloredIndentGuideElement.style.height = `${lineHeight}px`;
+        coloredIndentGuideElement.style.width = `${width * indentSize}px`;
+        const indentColor = colors[index % colors.length];
+        coloredIndentGuideElement.style.background = indentColor;
+        lineElement.appendChild(coloredIndentGuideElement);
+      }
+    });
     viewOverlayContainerElement.appendChild(lineElement);
   }
 
