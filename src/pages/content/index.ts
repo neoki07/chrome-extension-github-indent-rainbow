@@ -334,6 +334,7 @@ const renderIndentGuides_ = (
   viewOverlayContainerElement.style.height = '0px';
 
   const indentGuides = getLinesIndentLevels(lines, indentSize, tabSize);
+  const isCommentLines = getIsCommentLines(fileBlobContainerElement);
 
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
     const lineElement = document.createElement('div');
@@ -367,7 +368,10 @@ const renderIndentGuides_ = (
       verticalLineIndentGuideElement.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
       lineElement.appendChild(verticalLineIndentGuideElement);
 
-      if (!lines[lineIndex].length || indent % indentSize !== 0) {
+      if (
+        !lines[lineIndex].length ||
+        (!isCommentLines[lineIndex] && indent % indentSize !== 0)
+      ) {
         continue;
       }
 
@@ -386,7 +390,7 @@ const renderIndentGuides_ = (
       lineElement.appendChild(coloredIndentGuideElement);
     }
 
-    if (indent % indentSize !== 0) {
+    if (!isCommentLines[lineIndex] && indent % indentSize !== 0) {
       const left = leftOffset;
       const width = spaceWidth * indent;
 
@@ -506,6 +510,22 @@ const renderIndentGuides = (
   );
 
   fileBlobContainerElement.append(linesContentContainerElement);
+};
+
+const getIsCommentLines = (
+  fileBlobContainerElement: HTMLElement
+): boolean[] => {
+  const fileLineElements =
+    fileBlobContainerElement.getElementsByClassName('js-file-line');
+
+  return Array.from(fileLineElements).map((fileLineElement) => {
+    const firstLexemeNode = fileLineElement.firstChild;
+
+    return (
+      firstLexemeNode instanceof HTMLSpanElement &&
+      firstLexemeNode.className === 'pl-c'
+    );
+  });
 };
 
 const fetchGithubContent = async (
