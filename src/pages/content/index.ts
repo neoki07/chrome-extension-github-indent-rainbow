@@ -367,7 +367,7 @@ const renderIndentGuides_ = (
       verticalLineIndentGuideElement.style.boxShadow = `1px 0 0 0 ${borderColor} inset`;
       lineElement.appendChild(verticalLineIndentGuideElement);
 
-      if (!lines[lineIndex].length) {
+      if (!lines[lineIndex].length || indent % indentSize !== 0) {
         continue;
       }
 
@@ -383,6 +383,24 @@ const renderIndentGuides_ = (
       coloredIndentGuideElement.style.width = `${width * indentSize}px`;
       const indentColor = colors[indentLvl % colors.length];
       coloredIndentGuideElement.style.background = indentColor;
+      lineElement.appendChild(coloredIndentGuideElement);
+    }
+
+    if (indent % indentSize !== 0) {
+      const left = leftOffset;
+      const width = spaceWidth * indent;
+
+      const coloredIndentGuideElement = document.createElement('div');
+      coloredIndentGuideElement.classList.add(
+        'core-guide',
+        'core-guide-indent',
+        'colored'
+      );
+      coloredIndentGuideElement.style.position = 'absolute';
+      coloredIndentGuideElement.style.left = `${left}px`;
+      coloredIndentGuideElement.style.height = `${lineHeight}px`;
+      coloredIndentGuideElement.style.width = `${width}px`;
+      coloredIndentGuideElement.style.background = errorColor;
       lineElement.appendChild(coloredIndentGuideElement);
     }
 
