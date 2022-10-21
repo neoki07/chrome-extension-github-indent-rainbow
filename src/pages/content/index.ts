@@ -315,7 +315,10 @@ const fetchGithubContent = async (
 ): Promise<any> => {
   return await fetch(
     encodeURI(`https://raw.githubusercontent.com/${repo}/${branch}/${path}`)
-  ).then((response) => response.text());
+  ).then((response) => {
+    if (!response.ok) throw Error(response.statusText);
+    return response.text();
+  });
 };
 
 const onUpdate = async () => {
@@ -349,7 +352,9 @@ const onUpdate = async () => {
   const repo = `${splitUrl[3]}/${splitUrl[4]}`;
   const branch = splitUrl[6];
   const path = splitUrl.slice(7).join('/');
-  const content = await fetchGithubContent(repo, branch, path);
+  const content = await fetchGithubContent(repo, branch, path).catch((err) => {
+    throw Error(err);
+  });
 
   const lines = content.split(/\r\n|\r|\n/);
 
