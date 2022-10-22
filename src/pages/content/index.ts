@@ -312,11 +312,11 @@ const fetchGithubContent = async (
   repo: string,
   branch: string,
   path: string
-): Promise<any> => {
-  return await fetch(
-    encodeURI(`https://raw.githubusercontent.com/${repo}/${branch}/${path}`)
-  ).then((response) => {
-    if (!response.ok) throw Error(response.statusText);
+): Promise<string> => {
+  const uri = `https://raw.githubusercontent.com/${repo}/${branch}/${path}`;
+
+  return await fetch(encodeURI(uri)).then((response) => {
+    if (!response.ok) throw Error(`Failed to fetch content from ${uri}`);
     return response.text();
   });
 };
@@ -352,9 +352,11 @@ const onUpdate = async () => {
   const repo = `${splitUrl[3]}/${splitUrl[4]}`;
   const branch = splitUrl[6];
   const path = splitUrl.slice(7).join('/');
-  const content = await fetchGithubContent(repo, branch, path).catch((err) => {
-    throw Error(err);
-  });
+  const content = await fetchGithubContent(repo, branch, path).catch(
+    (err: Error) => {
+      throw Error(err.message);
+    }
+  );
 
   const lines = content.split(/\r\n|\r|\n/);
 
