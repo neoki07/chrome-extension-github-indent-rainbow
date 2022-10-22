@@ -201,8 +201,10 @@ const renderIndentGuides = (
   viewOverlayContainerElement.style.width = '5000px';
   viewOverlayContainerElement.style.height = '0px';
 
-  const indentGuides = getLinesIndentLevels(lines, indentSize, tabSize);
+  const indentGuides = getLinesIndentLevels(lines, tabSize);
   const isCommentLines = getIsCommentLines(fileBlobContainerElement);
+  const isContainsMixedTabsAndSpacesLines =
+    getIsContainsMixedTabsAndSpacesLines(lines);
 
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
     const lineElement = document.createElement('div');
@@ -215,6 +217,7 @@ const renderIndentGuides = (
     const lineIndex = lineNumber - 1;
     const indent = indentGuides[lineIndex];
     const indentLevelsInLine = Math.ceil(indent / indentSize);
+    const isIncorrectIndentLine = indent % indentSize !== 0;
     const leftOffset = 60; // TODO: compute line number content width;
 
     for (let indentLvl = 1; indentLvl <= indentLevelsInLine; indentLvl++) {
@@ -238,7 +241,9 @@ const renderIndentGuides = (
 
       if (
         !lines[lineIndex].length ||
-        (!isCommentLines[lineIndex] && indent % indentSize !== 0)
+        (!isCommentLines[lineIndex] &&
+          (isIncorrectIndentLine ||
+            isContainsMixedTabsAndSpacesLines[lineIndex]))
       ) {
         continue;
       }
@@ -253,12 +258,15 @@ const renderIndentGuides = (
       coloredIndentGuideElement.style.left = `${left}px`;
       coloredIndentGuideElement.style.height = `${lineHeight}px`;
       coloredIndentGuideElement.style.width = `${width * indentSize}px`;
-      const indentColor = colors[indentLvl % colors.length];
-      coloredIndentGuideElement.style.background = indentColor;
+      coloredIndentGuideElement.style.background =
+        colors[indentLvl % colors.length];
       lineElement.appendChild(coloredIndentGuideElement);
     }
 
-    if (!isCommentLines[lineIndex] && indent % indentSize !== 0) {
+    if (
+      !isCommentLines[lineIndex] &&
+      (isIncorrectIndentLine || isContainsMixedTabsAndSpacesLines[lineIndex])
+    ) {
       const left = leftOffset;
       const width = spaceWidth * indent;
 
@@ -272,7 +280,9 @@ const renderIndentGuides = (
       coloredIndentGuideElement.style.left = `${left}px`;
       coloredIndentGuideElement.style.height = `${lineHeight}px`;
       coloredIndentGuideElement.style.width = `${width}px`;
-      coloredIndentGuideElement.style.background = errorColor;
+      coloredIndentGuideElement.style.background = isIncorrectIndentLine
+        ? errorColor
+        : tabmixColor;
       lineElement.appendChild(coloredIndentGuideElement);
     }
 
@@ -301,6 +311,30 @@ const getIsCommentLines = (
   return Array.from(fileLineElements).map((fileLineElement) => {
     const spanElements = fileLineElement.getElementsByTagName('span');
     return spanElements.length && spanElements[0].className === 'pl-c';
+  });
+};
+
+const getIsContainsMixedTabsAndSpacesLines = (lines: string[]): boolean[] => {
+  return lines.map((line) => {
+    let tabCount = 0;
+    let spaceCount = 0;
+
+    let i = 0;
+    const len = line.length;
+
+    while (i < len) {
+      const chCode = line.charCodeAt(i);
+      if (chCode === CharCode.Space) {
+        tabCount++;
+      } else if (chCode === CharCode.Tab) {
+        spaceCount++;
+      } else {
+        break;
+      }
+      i++;
+    }
+
+    return tabCount > 0 && spaceCount > 0;
   });
 };
 
