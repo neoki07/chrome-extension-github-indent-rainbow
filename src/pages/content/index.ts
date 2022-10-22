@@ -299,12 +299,8 @@ const getIsCommentLines = (
     fileBlobContainerElement.getElementsByClassName('js-file-line');
 
   return Array.from(fileLineElements).map((fileLineElement) => {
-    const firstLexemeNode = fileLineElement.firstChild;
-
-    return (
-      firstLexemeNode instanceof HTMLSpanElement &&
-      firstLexemeNode.className === 'pl-c'
-    );
+    const spanElements = fileLineElement.getElementsByTagName('span');
+    return spanElements.length && spanElements[0].className === 'pl-c';
   });
 };
 
