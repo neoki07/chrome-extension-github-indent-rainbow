@@ -170,8 +170,6 @@ const renderIndentGuides = (
 
   const indentGuides = getLinesIndentLevels(lines, tabSize);
   const isCommentLines = getIsCommentLines(fileBlobContainerElement);
-  const isContainsMixedTabsAndSpacesLines =
-    getIsContainsMixedTabsAndSpacesLines(lines);
 
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
     const lineElement = document.createElement('div');
@@ -186,6 +184,10 @@ const renderIndentGuides = (
     const indentLevelsInLine = Math.ceil(indent / indentSize);
     const isIncorrectIndentLine = indent % indentSize !== 0;
     const leftOffset = 60; // TODO: compute line number content width;
+
+    const isContainsMixedTabAndSpaceLine = getIsContainsMixedTabAndSpaceLine(
+      lines[lineIndex]
+    );
 
     for (let indentLvl = 1; indentLvl <= indentLevelsInLine; indentLvl++) {
       const indentGuide = (indentLvl - 1) * indentSize + 1;
@@ -209,8 +211,7 @@ const renderIndentGuides = (
       if (
         !lines[lineIndex].length ||
         (!isCommentLines[lineIndex] &&
-          (isIncorrectIndentLine ||
-            isContainsMixedTabsAndSpacesLines[lineIndex]))
+          (isIncorrectIndentLine || isContainsMixedTabAndSpaceLine))
       ) {
         continue;
       }
@@ -232,7 +233,7 @@ const renderIndentGuides = (
 
     if (
       !isCommentLines[lineIndex] &&
-      (isIncorrectIndentLine || isContainsMixedTabsAndSpacesLines[lineIndex])
+      (isIncorrectIndentLine || isContainsMixedTabAndSpaceLine)
     ) {
       const left = leftOffset;
       const width = spaceWidth * indent;
@@ -281,28 +282,25 @@ const getIsCommentLines = (
   });
 };
 
-const getIsContainsMixedTabsAndSpacesLines = (lines: string[]): boolean[] => {
-  return lines.map((line) => {
-    let tabCount = 0;
-    let spaceCount = 0;
+const getIsContainsMixedTabAndSpaceLine = (line: string): boolean => {
+  let tabCount = 0;
+  let spaceCount = 0;
 
-    let i = 0;
-    const len = line.length;
-
-    while (i < len) {
-      const chCode = line.charCodeAt(i);
-      if (chCode === CharCode.Space) {
-        tabCount++;
-      } else if (chCode === CharCode.Tab) {
-        spaceCount++;
-      } else {
-        break;
-      }
-      i++;
+  let i = 0;
+  const len = line.length;
+  while (i < len) {
+    const chCode = line.charCodeAt(i);
+    if (chCode === CharCode.Space) {
+      tabCount++;
+    } else if (chCode === CharCode.Tab) {
+      spaceCount++;
+    } else {
+      break;
     }
+    i++;
+  }
 
-    return tabCount > 0 && spaceCount > 0;
-  });
+  return tabCount > 0 && spaceCount > 0;
 };
 
 const fetchGithubContent = async (
