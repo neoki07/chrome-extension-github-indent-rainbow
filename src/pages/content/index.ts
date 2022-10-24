@@ -1,4 +1,5 @@
 import detectIndent from 'detect-indent';
+import { getSpaceWidth } from '@pages/content/getSpaceWidth';
 
 const colors = [
   'rgba(255,255,64,0.07)',
@@ -11,7 +12,7 @@ const errorColor = 'rgba(128,32,32,0.6)';
 const tabmixColor = 'rgba(128,32,96,0.6)';
 const borderColor = 'rgba(255,255,255,0.1)';
 
-const spaceWidth = 7.25; // TODO: compute from font used
+const spaceWidth = getSpaceWidth();
 const lineHeight = 20; // TODO: compute from GitHub DOM
 
 const root = document.createElement('div');
