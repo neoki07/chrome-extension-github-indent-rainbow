@@ -13,7 +13,6 @@ const tabmixColor = 'rgba(128,32,96,0.6)';
 const borderColor = 'rgba(255,255,255,0.1)';
 
 const spaceWidth = getSpaceWidth();
-const lineHeight = 20; // TODO: compute from GitHub DOM
 
 const root = document.createElement('div');
 root.id = 'github-indent-rainbow-content-view-root';
@@ -168,6 +167,21 @@ const getLeftOffset = (fileLineContainerElement: HTMLElement): number => {
   return lineNumberWidth + codePaddingLeft;
 };
 
+const getLineHeight = (fileLineContainerElement: HTMLElement): number => {
+  const lineNumberElements =
+    fileLineContainerElement.getElementsByClassName('js-line-number');
+
+  if (
+    !lineNumberElements.length ||
+    !(lineNumberElements[0] instanceof HTMLElement)
+  ) {
+    console.warn('Not found line number element');
+    return 0;
+  }
+
+  return lineNumberElements[0].offsetHeight;
+};
+
 const renderIndentGuides = (
   fileBlobContainerElement: HTMLElement,
   fileLineContainerElement: HTMLElement,
@@ -175,6 +189,10 @@ const renderIndentGuides = (
   indentSize: number,
   tabSize: number
 ): void => {
+  const indentGuides = getLinesIndentLevels(lines, tabSize);
+  const isCommentLines = getIsCommentLines(fileBlobContainerElement);
+  const leftOffset = getLeftOffset(fileLineContainerElement);
+  const lineHeight = getLineHeight(fileLineContainerElement);
   const lineCount = getLineCount(lines);
   const height = lineCount * lineHeight;
 
@@ -191,10 +209,6 @@ const renderIndentGuides = (
   viewOverlayContainerElement.style.top = '0px';
   viewOverlayContainerElement.style.width = '5000px';
   viewOverlayContainerElement.style.height = '0px';
-
-  const indentGuides = getLinesIndentLevels(lines, tabSize);
-  const isCommentLines = getIsCommentLines(fileBlobContainerElement);
-  const leftOffset = getLeftOffset(fileLineContainerElement);
 
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
     const lineElement = document.createElement('div');
