@@ -145,6 +145,29 @@ const getLinesIndentLevels = (lines: string[], tabSize: number) => {
   return result;
 };
 
+const getLeftOffset = (fileLineContainerElement: HTMLElement): number => {
+  const lineNumberElements =
+    fileLineContainerElement.getElementsByClassName('js-line-number');
+  const codeElements =
+    fileLineContainerElement.getElementsByClassName('js-file-line');
+
+  if (
+    !lineNumberElements.length ||
+    !codeElements.length ||
+    !(lineNumberElements[0] instanceof HTMLElement) ||
+    !(codeElements[0] instanceof HTMLElement)
+  ) {
+    console.warn('Not found line number or code element');
+    return 0;
+  }
+
+  const lineNumberWidth = lineNumberElements[0].offsetWidth;
+  const codePaddingLeft =
+    parseInt(getComputedStyle(codeElements[0]).paddingLeft) || 0;
+
+  return lineNumberWidth + codePaddingLeft;
+};
+
 const renderIndentGuides = (
   fileBlobContainerElement: HTMLElement,
   fileLineContainerElement: HTMLElement,
@@ -171,6 +194,7 @@ const renderIndentGuides = (
 
   const indentGuides = getLinesIndentLevels(lines, tabSize);
   const isCommentLines = getIsCommentLines(fileBlobContainerElement);
+  const leftOffset = getLeftOffset(fileLineContainerElement);
 
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
     const lineElement = document.createElement('div');
@@ -184,7 +208,6 @@ const renderIndentGuides = (
     const indent = indentGuides[lineIndex];
     const indentLevelsInLine = Math.ceil(indent / indentSize);
     const isIncorrectIndentLine = indent % indentSize !== 0;
-    const leftOffset = 60; // TODO: compute line number content width;
 
     const isContainsMixedTabAndSpaceLine = getIsContainsMixedTabAndSpaceLine(
       lines[lineIndex]
