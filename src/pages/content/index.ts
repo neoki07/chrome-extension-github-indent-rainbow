@@ -382,6 +382,12 @@ const onUpdate = async () => {
 
   const url = location.href;
   const splitUrl = url.split('/');
+
+  if (splitUrl.length < 8) {
+    console.error('Current URL format is incorrect');
+    return;
+  }
+
   const repo = `${splitUrl[3]}/${splitUrl[4]}`;
   const branch = splitUrl[6];
   const path = splitUrl.slice(7).join('/');
