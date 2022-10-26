@@ -14,10 +14,6 @@ const borderColor = 'rgba(255,255,255,0.1)';
 
 const spaceWidth = getSpaceWidth();
 
-const root = document.createElement('div');
-root.id = 'github-indent-rainbow-content-view-root';
-document.body.prepend(root);
-
 const enum CharCode {
   /**
    * The `\t` character.
