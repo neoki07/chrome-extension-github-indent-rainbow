@@ -4,7 +4,7 @@ import {
   readCharWidths,
 } from '@pages/content/charWidthReader';
 
-const _createRequest = (
+const createRequest = (
   chr: string,
   type: CharWidthRequestType,
   all: CharWidthRequest[]
@@ -17,7 +17,7 @@ const _createRequest = (
 export const getSpaceWidth = (): number => {
   const all: CharWidthRequest[] = [];
 
-  const space = _createRequest(' ', CharWidthRequestType.Regular, all);
+  const space = createRequest(' ', CharWidthRequestType.Regular, all);
 
   readCharWidths(all);
 
