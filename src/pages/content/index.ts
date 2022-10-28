@@ -66,21 +66,9 @@ const renderIndentGuides = (
   const leftOffset = getLeftOffset(fileLineContainerElement);
   const lineHeight = getLineHeight(fileLineContainerElement);
   const lineCount = getLineCount(lines);
-  const height = lineCount * lineHeight;
-
-  const linesContentContainerElement = document.createElement('div');
-  linesContentContainerElement.className = 'lines-content';
-  linesContentContainerElement.style.position = 'relative';
-  linesContentContainerElement.style.width = '100%';
-  linesContentContainerElement.style.height = `${height}px`;
-  linesContentContainerElement.style.overflow = 'hidden';
 
   const viewOverlayContainerElement = document.createElement('div');
   viewOverlayContainerElement.className = 'view-overlays';
-  viewOverlayContainerElement.style.position = 'absolute';
-  viewOverlayContainerElement.style.top = '0px';
-  viewOverlayContainerElement.style.width = '5000px';
-  viewOverlayContainerElement.style.height = '0px';
 
   for (let lineNumber = 1; lineNumber <= lineCount; lineNumber++) {
     const lineElement = document.createElement('div');
@@ -167,17 +155,8 @@ const renderIndentGuides = (
     viewOverlayContainerElement.appendChild(lineElement);
   }
 
-  const viewLinesContainerElement = document.createElement('div');
-  viewLinesContainerElement.className = 'view-lines';
-  viewLinesContainerElement.style.position = 'absolute';
-  viewLinesContainerElement.appendChild(fileLineContainerElement);
-
-  linesContentContainerElement.append(
-    viewOverlayContainerElement,
-    viewLinesContainerElement
-  );
-
-  fileBlobContainerElement.append(linesContentContainerElement);
+  fileBlobContainerElement.style.position = 'relative';
+  fileBlobContainerElement.prepend(viewOverlayContainerElement);
 };
 
 const getIsCommentLines = (
