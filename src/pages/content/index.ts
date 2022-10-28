@@ -1,7 +1,11 @@
 import detectIndent from 'detect-indent';
 import { getSpaceWidth } from '@pages/content/getSpaceWidth';
 import { getLinesIndentLevels } from '@pages/content/getLinesIndentLevels';
-import { CharCode, getLineCount } from '@pages/content/utils';
+import {
+  fetchGithubContent,
+  getIsContainsMixedTabAndSpaceLine,
+  getLineCount,
+} from '@pages/content/utils';
 
 const colors = [
   'rgba(255,255,64,0.07)',
@@ -52,6 +56,18 @@ const getLineHeight = (fileLineContainerElement: HTMLElement): number => {
   }
 
   return lineNumberElements[0].offsetHeight;
+};
+
+const getIsCommentLines = (
+  fileBlobContainerElement: HTMLElement
+): boolean[] => {
+  const fileLineElements =
+    fileBlobContainerElement.getElementsByClassName('js-file-line');
+
+  return Array.from(fileLineElements).map((fileLineElement) => {
+    const spanElements = fileLineElement.getElementsByTagName('span');
+    return spanElements.length && spanElements[0].className === 'pl-c';
+  });
 };
 
 const renderIndentGuides = (
@@ -157,52 +173,6 @@ const renderIndentGuides = (
 
   fileBlobContainerElement.style.position = 'relative';
   fileBlobContainerElement.prepend(viewOverlayContainerElement);
-};
-
-const getIsCommentLines = (
-  fileBlobContainerElement: HTMLElement
-): boolean[] => {
-  const fileLineElements =
-    fileBlobContainerElement.getElementsByClassName('js-file-line');
-
-  return Array.from(fileLineElements).map((fileLineElement) => {
-    const spanElements = fileLineElement.getElementsByTagName('span');
-    return spanElements.length && spanElements[0].className === 'pl-c';
-  });
-};
-
-const getIsContainsMixedTabAndSpaceLine = (line: string): boolean => {
-  let tabCount = 0;
-  let spaceCount = 0;
-
-  let i = 0;
-  const len = line.length;
-  while (i < len) {
-    const chCode = line.charCodeAt(i);
-    if (chCode === CharCode.Space) {
-      tabCount++;
-    } else if (chCode === CharCode.Tab) {
-      spaceCount++;
-    } else {
-      break;
-    }
-    i++;
-  }
-
-  return tabCount > 0 && spaceCount > 0;
-};
-
-const fetchGithubContent = async (
-  repo: string,
-  branch: string,
-  path: string
-): Promise<string> => {
-  const uri = `https://raw.githubusercontent.com/${repo}/${branch}/${path}`;
-
-  return await fetch(encodeURI(uri)).then((response) => {
-    if (!response.ok) throw Error(`Failed to fetch content from ${uri}`);
-    return response.text();
-  });
 };
 
 const onUpdate = async () => {
