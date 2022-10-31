@@ -7,15 +7,15 @@ import {
   getLineCount,
 } from '@pages/content/utils';
 
-const colors = [
+let colors = [
   'rgba(255,255,64,0.07)',
   'rgba(127,255,127,0.07)',
   'rgba(255,127,255,0.07)',
   'rgba(79,236,236,0.07)',
 ];
 
-const errorColor = 'rgba(128,32,32,0.6)';
-const tabmixColor = 'rgba(128,32,96,0.6)';
+let errorColor = 'rgba(128,32,32,0.6)';
+let tabmixColor = 'rgba(128,32,96,0.6)';
 const borderColor = 'rgba(255,255,255,0.1)';
 
 const spaceWidth = getSpaceWidth();
@@ -250,5 +250,31 @@ const urlChangeObserver = new MutationObserver(() => {
   urlChangeObserver.observe(document, { childList: true, subtree: true });
 });
 
-onUpdate();
-urlChangeObserver.observe(document, { childList: true, subtree: true });
+chrome.storage.local
+  .get(['colors', 'errorColor', 'tabmixColor'])
+  .then(
+    ({
+      colors: colors_,
+      errorColor: errorColor_,
+      tabmixColor: tabmixColor_,
+    }) => {
+      if (colors_) {
+        colors = JSON.parse(colors_);
+      }
+
+      if (errorColor_) {
+        errorColor = errorColor_;
+      }
+
+      if (tabmixColor_) {
+        tabmixColor = tabmixColor_;
+      }
+    }
+  )
+  .finally(() => {
+    console.log('colors:', colors);
+    console.log('errorColor:', errorColor);
+    console.log('tabmixColors:', tabmixColor);
+    onUpdate();
+    urlChangeObserver.observe(document, { childList: true, subtree: true });
+  });

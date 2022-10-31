@@ -5,7 +5,8 @@
   left: 0px;
   right: 0px;
   height: 100%;
-  padding: 14px;
+  padding: 16px;
   color: white;
   background-color: #282c34;
+  overflow-y: scroll;
 }
