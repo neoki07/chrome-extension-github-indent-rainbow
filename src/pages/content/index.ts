@@ -141,7 +141,7 @@ const renderIndentGuides = (
       coloredIndentGuideElement.style.height = `${lineHeight}px`;
       coloredIndentGuideElement.style.width = `${width * indentSize}px`;
       coloredIndentGuideElement.style.background =
-        colors[indentLvl % colors.length];
+        colors[(indentLvl - 1) % colors.length];
       lineElement.appendChild(coloredIndentGuideElement);
     }
 
