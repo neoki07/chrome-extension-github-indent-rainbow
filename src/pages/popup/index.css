@@ -8,6 +8,7 @@ body {
     sans-serif;
   -moz-osx-font-smoothing: grayscale;
   position: relative;
+  background-color: #282c34;
 }
 
 code {
