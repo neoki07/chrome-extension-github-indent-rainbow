@@ -1,41 +1,34 @@
 import '@pages/popup/Popup.css';
+import {
+  defaultColors,
+  defaultErrorColor,
+  defaultTabmixColor,
+} from '@src/lib/defaultValues';
+import { Config, LocalStorageItems } from '@src/lib/types';
 import { Formik, Form, Field, FieldArray } from 'formik';
 import { useEffect, useState } from 'react';
 import { HiXMark } from 'react-icons/hi2';
 
-type localStorageValuesProps = {
-  colors: string[];
-  errorColor: string;
-  tabmixColor: string;
-};
-
-const defaultInitialValues: localStorageValuesProps = {
-  colors: [
-    'rgba(255,255,64,0.07)',
-    'rgba(127,255,127,0.07)',
-    'rgba(255,127,255,0.07)',
-    'rgba(79,236,236,0.07)',
-  ],
-  errorColor: 'rgba(128,32,32,0.6)',
-  tabmixColor: 'rgba(128,32,96,0.6)',
-};
-
 const Popup = () => {
-  const [initialValues, setInitialValues] = useState<localStorageValuesProps>();
+  const [initialValues, setInitialValues] = useState<Config>();
 
   useEffect(() => {
     if (chrome.storage === undefined) {
-      setInitialValues(defaultInitialValues);
+      setInitialValues({
+        colors: defaultColors,
+        errorColor: defaultErrorColor,
+        tabmixColor: defaultTabmixColor,
+      });
       return;
     }
 
     chrome.storage.local
       .get(['colors', 'errorColor', 'tabmixColor'])
-      .then(({ colors, errorColor, tabmixColor }) =>
+      .then(({ colors, errorColor, tabmixColor }: LocalStorageItems) =>
         setInitialValues({
-          colors: colors ? JSON.parse(colors) : defaultInitialValues.colors,
-          errorColor: errorColor || defaultInitialValues.errorColor,
-          tabmixColor: tabmixColor || defaultInitialValues.tabmixColor,
+          colors: colors ? JSON.parse(colors) : defaultColors,
+          errorColor: errorColor || defaultErrorColor,
+          tabmixColor: tabmixColor || defaultTabmixColor,
         })
       );
   }, []);
