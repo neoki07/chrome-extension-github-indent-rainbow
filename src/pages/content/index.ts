@@ -6,18 +6,17 @@ import {
   getIsContainsMixedTabAndSpaceLine,
   getLineCount,
 } from '@pages/content/utils';
-import {
-  defaultColors,
-  defaultErrorColor,
-  defaultTabmixColor,
-  defaultBorderColor,
-} from '@src/lib/defaultValues';
-import { LocalStorageItems } from '@src/lib/types';
 
-let colors = defaultColors;
-let errorColor = defaultErrorColor;
-let tabmixColor = defaultTabmixColor;
-const borderColor = defaultBorderColor;
+let colors = [
+  'rgba(255,255,64,0.07)',
+  'rgba(127,255,127,0.07)',
+  'rgba(255,127,255,0.07)',
+  'rgba(79,236,236,0.07)',
+];
+
+let errorColor = 'rgba(128,32,32,0.6)';
+let tabmixColor = 'rgba(128,32,96,0.6)';
+const borderColor = 'rgba(255,255,255,0.1)';
 
 const spaceWidth = getSpaceWidth();
 
@@ -258,7 +257,7 @@ chrome.storage.local
       colors: colors_,
       errorColor: errorColor_,
       tabmixColor: tabmixColor_,
-    }: LocalStorageItems) => {
+    }) => {
       if (colors_) {
         colors = JSON.parse(colors_);
       }
